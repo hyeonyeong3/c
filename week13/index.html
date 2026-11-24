@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+
+<html lang="ko">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <title>GPS 경로 지도</title>
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <style>
+
+    html, body, #map { height: 100%; margin: 0; }
+
+  </style>
+
+</head>
+
+<body>
+
+  <div id="map"></div>
+
+  <script>
+
+    const map = L.map('map');
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+
+      attribution: '&copy; OpenStreetMap'
+
+    }).addTo(map);
+
+
+
+    fetch('output.json')
+
+      .then(res => res.json())
+
+      .then(data => {
+
+        const path = data.map(p => [p.latitude, p.longitude]);
+
+
+
+        // 이동 경로 선
+
+        const line = L.polyline(path, { color: 'red', weight: 4 }).addTo(map);
+
+
+
+        // 각 지점 표시 (클릭하면 속도 정보)
+
+        data.forEach(p => {
+
+          L.circleMarker([p.latitude, p.longitude], { radius: 5 })
+
+            .bindPopup(p.info).addTo(map);
+
+        });
+
+
+
+        // 출발/도착 마커
+
+        L.marker(path[0]).bindPopup('출발').addTo(map);
+
+        L.marker(path[path.length - 1]).bindPopup('도착').addTo(map);
+
+
+
+        map.fitBounds(line.getBounds());
+
+      })
+
+      .catch(err => alert('output.json 불러오기 실패: ' + err));
+
+  </script>
+
+</body>
+
+</html>
+
